@@ -1,2 +1,55 @@
-# 忽略venv文件夹
+# Python 虚拟环境
 venv/
+env/
+ENV/
+
+# Python 字节码文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python 构建和发布
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+bin/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+wheels/
+
+# IDE 配置文件
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 日志文件
+logs/
+*.log
+
+# 配置文件（保留模板）
+config/*.yaml
+!config/*.template
+!config/default.yaml.template
+
+# 测试覆盖率报告
+.coverage
+coverage.xml
+.pytest_cache/
+htmlcov/
+
+# 环境变量文件
+.env
+.env.*
+
+# 其他
+.DS_Store
+Thumbs.db

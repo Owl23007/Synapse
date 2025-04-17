@@ -1,0 +1,124 @@
+:root {
+    --primary-color: #FF9AA2;
+    --secondary-color: #FFB7B2;
+    --accent-color: #FFDAC1;
+    --text-color: #5E5346;
+    --bg-color: #F7F4F0;
+}
+
+body {
+    font-family: 'Comic Neue', cursive;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+.chat-container {
+    max-width: 800px;
+    margin: 20px auto;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.chat-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.chat-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.header-icons span {
+    margin-left: 15px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.header-icons span:hover {
+    transform: scale(1.2);
+}
+
+.chat-messages {
+    height: 500px;
+    padding: 20px;
+    background-color: white;
+    overflow-y: auto;
+}
+
+.cute-input {
+    width: 80%;
+    padding: 12px 15px;
+    border: 2px solid var(--accent-color);
+    border-radius: 50px;
+    font-family: 'Comic Neue', cursive;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.cute-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 154, 162, 0.3);
+}
+
+.cute-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 50px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-family: 'Comic Neue', cursive;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.cute-button:hover {
+    background-color: #ff7e8a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 消息气泡样式 */
+.message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 18px;
+    max-width: 70%;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.user-message {
+    background-color: var(--accent-color);
+    margin-left: auto;
+    border-bottom-right-radius: 5px;
+}
+
+.ai-message {
+    background-color: #f0f0f0;
+    margin-right: auto;
+    border-bottom-left-radius: 5px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

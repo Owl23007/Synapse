@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Synapse - AI助手</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="chat-container">
+      <header class="chat-header">
+        <h1>🌸 Synapse AI</h1>
+        <div class="header-icons">
+          <span>⚙️</span>
+          <span>❤️</span>
+        </div>
+      </header>
+
+      <div class="chat-messages" id="chat-messages">
+        <!-- 消息将在这里动态显示 -->
+      </div>
+
+      <div class="chat-input">
+        <input
+          type="text"
+          id="user-input"
+          placeholder="输入消息..."
+          class="cute-input"
+        />
+        <button id="send-btn" class="cute-button">发送 🎈</button>
+      </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>

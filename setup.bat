@@ -59,8 +59,24 @@ if exist "requirements.txt" (
     echo [i] 跳过依赖安装
 )
 
+:: 检查并创建必要目录
+if not exist "config" mkdir config
+if not exist "data" mkdir data
+if not exist "logs" mkdir logs
+
+:: 检查配置文件
+if not exist "config\default.yaml" (
+    echo 创建默认配置文件...
+    copy "config\default.yaml.template" "config\default.yaml"
+    echo 请修改 config\default.yaml 中的配置
+)
+
 echo.
 echo ===================================
 echo         环境配置成功完成
 echo ===================================
+echo 1. 确保已修改 config\default.yaml 中的配置
+echo 2. 运行 run.bat 启动系统
+echo.
 pause
+endlocal
