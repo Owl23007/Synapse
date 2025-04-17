@@ -1,0 +1,25 @@
+default_config:
+  model:
+    type: "neural_network"
+    layers:
+      - type: "dense"
+        units: 128
+        activation: "relu"
+      - type: "dense"
+        units: 64
+        activation: "relu"
+      - type: "output"
+        units: 10
+        activation: "softmax"
+  training:
+    batch_size: 32
+    epochs: 50
+    learning_rate: 0.001
+  data:
+    dataset_path: "data/dataset.csv"
+    preprocessing:
+      normalize: true
+      shuffle: true
+  logging:
+    level: "INFO"
+    file: "logs/training.log"
