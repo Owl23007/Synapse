@@ -32,3 +32,6 @@ pytest-asyncio>=0.18.0
 pytest-cov>=3.0.0
 aiosqlite>=0.17.0
 Flask>=2.0.1
+
+# 添加graphviz依赖
+graphviz>=0.20
