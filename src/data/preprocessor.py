@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 前处理模块，负责提取上下文，计算相关性
 """
@@ -24,13 +23,14 @@ class ContextProcessor:
     
     def register_handlers(self):
         """注册消息处理器"""
-        self.message_bus.subscribe("trigger", self.process_trigger)
+        # 由于 MessageBus.subscribe 是异步方法，这里需兼容调用
+        asyncio.create_task(self.message_bus.subscribe("trigger", self.process_trigger))
     
     async def process_trigger(self, message: Message) -> None:
         """处理触发消息，提取上下文"""
         try:
-            trigger_data = message.data
-            original_message = trigger_data.get("original_message", "")
+            trigger_data: dict[str, Any] = message.data
+            original_message: str = trigger_data.get("original_message", "")
             
             # 提取主题和实体
             entities, topics = await self._extract_entities_and_topics(original_message)
@@ -52,38 +52,44 @@ class ContextProcessor:
             
             # 创建预处理后的消息
             processed_msg = Message(
-                "preprocessed",
-                {
-                    "original_message": original_message,
-                    "entities": entities,
-                    "topics": topics,
-                    "relevant_memories": relevant_memories,
-                    "context_relevance": context_relevance,
-                    "trigger_name": trigger_data.get("trigger_name", "unknown"),
-                },
-                "context_processor",
-                message.metadata
+                content="preprocessed",
+                source="context_processor",
+                type="context_processor",
+                metadata=message.metadata
             )
+            processed_msg.data = {
+                "original_message": original_message,
+                "entities": entities,
+                "topics": topics,
+                "relevant_memories": relevant_memories,
+                "context_relevance": context_relevance,
+                "trigger_name": trigger_data.get("trigger_name", "unknown"),
+            }
             
             # 发布处理后的消息
             logger.debug(f"上下文处理完成，发布预处理消息: {processed_msg.id}")
-            await self.message_bus.publish(processed_msg)
+            await self.message_bus.publish(
+                "context_processor", processed_msg
+            )
             
         except Exception as e:
             logger.error(f"处理触发消息时出错: {e}")
             # 创建错误消息
             error_msg = Message(
-                "error",
-                {
-                    "error": str(e),
-                    "module": "context_processor",
-                    "original_message": message
-                },
-                "context_processor"
+                content="error",
+                source="context_processor",
+                type="context_processor"
             )
-            await self.message_bus.publish(error_msg)
+            error_msg.data = {
+                "error": str(e),
+                "module": "context_processor",
+                "original_message": message.content
+            }
+            await self.message_bus.publish(
+                "context_processor", error_msg
+            )
     
-    async def _extract_entities_and_topics(self, text: str) -> tuple:
+    async def _extract_entities_and_topics(self, text: str) -> tuple[list[str], list[str]]:
         """从文本中提取实体和主题"""
         if not isinstance(text, str):
             return [], []
@@ -105,7 +111,7 @@ class ContextProcessor:
         
         return entities, topics
     
-    async def _calculate_relevance(self, text: str, memories: List[Dict]) -> float:
+    async def _calculate_relevance(self, text: str, memories: list[dict[str, Any]]) -> float:
         """计算输入文本与记忆的相关性"""
         if not memories or not text:
             return 0.0
@@ -116,7 +122,7 @@ class ContextProcessor:
             text_words = set(text.lower().split())
             memory_texts = [m.get('content', '') for m in memories]
             
-            total_overlap = 0
+            total_overlap = 0.0  # 修正类型为float，避免mypy类型报错
             for memory_text in memory_texts:
                 if not isinstance(memory_text, str):
                     continue
@@ -135,18 +141,51 @@ class ContextProcessor:
             logger.error(f"计算相关性时出错: {e}")
             return 0.0
 
-def clean_data(data):
-    # Implement data cleaning logic here
-    cleaned_data = data.dropna()  # Example: dropping missing values
+# ================== 数据预处理相关函数 ==================
+
+def clean_data(data: Any) -> Any:
+    # 实现数据清洗逻辑
+    # 兼容 pandas.DataFrame、dict、list 等常见类型
+    if hasattr(data, 'dropna') and callable(getattr(data, 'dropna')):
+        # pandas.DataFrame 或 Series
+        cleaned_data = data.dropna()
+    elif isinstance(data, dict):
+        # 移除值为 None 的项
+        cleaned_data = {k: v for k, v in data.items() if v is not None}
+    elif isinstance(data, list):
+        # 移除为 None 的元素
+        cleaned_data = [item for item in data if item is not None]
+    else:
+        cleaned_data = data
     return cleaned_data
 
-def extract_features(data):
-    # Implement feature extraction logic here
-    features = data[['feature1', 'feature2']]  # Example: selecting specific features
+def extract_features(data: Any) -> Any:
+    # 实现特征提取逻辑
+    # 兼容 pandas.DataFrame、dict、list 等常见类型
+    if hasattr(data, '__getitem__'):
+        try:
+            # pandas.DataFrame
+            features = data[['feature1', 'feature2']]
+        except Exception:
+            # dict 或 list
+            if isinstance(data, dict):
+                # 只保留特定 key
+                keys = ['feature1', 'feature2']
+                features = {k: v for k, v in data.items() if k in keys}
+            elif isinstance(data, list):
+                # 假设每个元素是 dict
+                features = [
+                    {k: v for k, v in item.items() if k in ['feature1', 'feature2']}
+                    if isinstance(item, dict) else item for item in data
+                ]
+            else:
+                features = data
+    else:
+        features = data
     return features
 
-def preprocess_data(data):
-    # Combine cleaning and feature extraction
+def preprocess_data(data: Any) -> Any:
+    # 组合清洗和特征提取
     cleaned_data = clean_data(data)
     features = extract_features(cleaned_data)
     return features

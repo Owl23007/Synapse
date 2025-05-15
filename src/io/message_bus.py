@@ -43,7 +43,7 @@ class Message:
         self.priority = priority
         self.retry_count = 0
         self.max_retries = max_retries
-        self.data = {}  # 添加通用数据字段
+        self.data: dict[str, Any] = {}  # 添加通用数据字段
 
     def to_dict(self) -> Dict[str, Any]:
         return {

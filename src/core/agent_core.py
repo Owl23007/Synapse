@@ -64,10 +64,22 @@ class AgentCore:
                 return
             # 获取上下文记忆
             context = await self.memory.get_context(content)
+            if isinstance(context, list):
+                context_dict = {str(i): v for i, v in enumerate(context)}
+            elif isinstance(context, dict):
+                context_dict = context
+            else:
+                context_dict = {}
             # 获取相关知识
             knowledge = await self.rag.get_knowledge(content)
+            if isinstance(knowledge, list):
+                knowledge_dict = {str(i): v for i, v in enumerate(knowledge)}
+            elif isinstance(knowledge, dict):
+                knowledge_dict = knowledge
+            else:
+                knowledge_dict = {}
             # 处理响应
-            response = await self._process_response(content, context, knowledge)
+            response = await self._process_response(content, context_dict, knowledge_dict)
             # 发送响应，带user_id
             await self.message_bus.publish("agent_output", {
                 "type": "text",
@@ -78,7 +90,7 @@ class AgentCore:
             await self.memory.add_interaction(content, response)
         except Exception as e:
             logger.error(f"处理输入时出错: {str(e)}", exc_info=True)
-            logger.error(f"输入内容: {content}")
+            logger.error(f"输入内容: {message.get('content', '')}")
             logger.error(f"消息内容: {message}")
             await self.message_bus.publish("agent_output", {
                 "type": "error",

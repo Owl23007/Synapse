@@ -27,7 +27,7 @@ def setup_logging(module_name: str, log_level: Optional[str] = None) -> Any:
     # 添加控制台处理器
     logger.add(
         sys.stderr,
-        level=log_level,
+        level=cast("str | int", log_level),
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
                "<level>{level: <8}</level> | "
                "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "

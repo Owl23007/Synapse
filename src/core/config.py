@@ -134,7 +134,7 @@ def load_config(config_dir: Optional[str] = None) -> Config:
         raise FileNotFoundError(f"默认配置文件不存在: {default_config_path}")
         
     # 加载所有yaml配置文件
-    config_dict = {}
+    config_dict: dict[str, Any] = {}
     for yaml_file in sorted(glob(os.path.join(config_dir, "*.yaml"))):
         # 跳过示例配置文件
         if "example" in yaml_file.lower():

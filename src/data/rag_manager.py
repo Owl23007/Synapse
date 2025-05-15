@@ -89,8 +89,8 @@ class RAGManager:
         
         # 2. 向量检索
         if self.vector_store is not None:
+            results: list[dict[str, Any]] = []
             D, I = self.vector_store.search(query_embedding.reshape(1, -1), top_k)
-            results = []
             for idx in I[0]:
                 if idx < len(self.documents) and self.documents:  # 检查列表是否为空
                     doc = self.documents[idx]
