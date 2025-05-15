@@ -10,6 +10,7 @@ from .models import APIResponse, ChatRequest
 from typing import Optional
 import os
 import yaml
+from src.core.config import load_config
 
 # 创建FastAPI应用
 app = FastAPI(
@@ -19,19 +20,8 @@ app = FastAPI(
 )
 
 # 加载配置文件
-def load_config():
-    global API_KEY
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'ai_api.yaml')
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-            API_KEY = config.get('security', {}).get('api_key') or os.getenv("SYNAPSE_API_KEY", "your-secret-key")
-    except Exception as e:
-        logging.error(f"加载配置文件失败: {str(e)}")
-        API_KEY = os.getenv("SYNAPSE_API_KEY", "your-secret-key")
-
-# 在应用启动时加载配置
-load_config()
+config = load_config()
+API_KEY = config.api.api_key
 
 # 设置速率限制器
 limiter = Limiter(key_func=get_remote_address)
@@ -55,23 +45,12 @@ API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME)
 
 async def verify_api_key(api_key: str = Depends(api_key_header)) -> bool:
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'ai_api.yaml')
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-            valid_key = config.get('security', {}).get('api_key') or os.getenv("SYNAPSE_API_KEY", "your-secret-key")
-            if api_key != valid_key:
-                raise HTTPException(
-                    status_code=403,
-                    detail="无效的API密钥"
-                )
-            return True
-    except Exception as e:
-        logging.error(f"验证API密钥时出错: {str(e)}")
+    if api_key != API_KEY:
         raise HTTPException(
-            status_code=500,
-            detail="服务器内部错误"
+            status_code=403,
+            detail="无效的API密钥"
         )
+    return True
 
 @app.post("/api/v1/agent", response_model=APIResponse)
 @limiter.limit("10/minute")

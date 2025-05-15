@@ -18,8 +18,8 @@ system:
 
 api:
   version: 'v1'
-  rate_limit: '10/minute'
+  rate_limit: '10/minute' # 限制每分钟10次请求
   allowed_origins:
-    - 'http://localhost:8080'
+    - 'http://localhost:8080' 
     - 'http://localhost:3000'
-  api_key: 'your-secret-key' # 在生产环境中应该使用强密钥
+  api_key: 'L3cev1ABEb0YAtIsJcJVrRVQEKzvax4nQrWhqq9RjmU' # 已迁移自 ai_api.yaml
