@@ -3,7 +3,7 @@ import graphviz
 import platform
 
 # 确保目标目录存在
-os.makedirs('d:/Code/Synapse/assets/images', exist_ok=True)
+os.makedirs('../assets/images', exist_ok=True)
 
 # 根据操作系统选择合适的字体
 system = platform.system()
@@ -159,6 +159,6 @@ except Exception as e:
     dot_simple.edge('core', 'mcp', dir='both')
     
     # 保存简化版图像
-    dot_simple.render('d:/Code/Synapse/assets/images/synapse_architecture_simple', cleanup=True)
-    
-    print(f"简化版架构图已生成保存到: d:/Code/Synapse/assets/images/synapse_architecture_simple.png")
+    dot_simple.render('../assets/images/synapse_architecture_simple', cleanup=True)
+
+    print(f"简化版架构图已生成保存到: ../assets/images/synapse_architecture_simple.png")

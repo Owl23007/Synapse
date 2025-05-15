@@ -9,12 +9,17 @@ class WebInputHandler(BaseInputHandler):
         self._current_input: Optional[str] = None
 
     async def get_input(self) -> str:
-        """从Web界面获取输入"""
+        """从Web界面获取输入，支持多用户user_id"""
         # 订阅Web输入消息
         async for message in self.message_bus.subscribe("web_input"):
             self._current_input = message.get("content", "")
+            self._current_user_id = message.get("user_id", None)  # 新增：记录user_id
             if self._current_input:
                 return self._current_input
+
+    @property
+    def current_user_id(self):
+        return getattr(self, '_current_user_id', None)
 
     async def setup(self):
         """设置Web输入处理器"""

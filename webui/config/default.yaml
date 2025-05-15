@@ -1,0 +1,8 @@
+# webui 配置文件
+system:
+  name: 'Synapse WebUI'
+  version: '0.1.0'
+  debug: false
+  log_level: 'INFO'
+  log_path: 'logs'
+  port: 8000

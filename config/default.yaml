@@ -1,83 +1,17 @@
-default_config:
-  model:
-    type: "neural_network"
-    layers:
-      - type: "dense"
-        units: 128
-        activation: "relu"
-      - type: "dense"
-        units: 64
-        activation: "relu"
-      - type: "output"
-        units: 10
-        activation: "softmax"
-  training:
-    batch_size: 32
-    epochs: 50
-    learning_rate: 0.001
-  data:
-    dataset_path: "data/dataset.csv"
-    preprocessing:
-      normalize: true
-      shuffle: true
-  logging:
-    level: "INFO"
-    file: "logs/training.log"
+# 主配置文件，聚合各子配置
+include:
+  - ai_api.yaml
+  - memory.yaml
+  - rag.yaml
+  - mcp.yaml
+  - plugins.yaml
+  # 其他如 tools.yaml
 
+# 项目配置文件
 system:
-  name: "Synapse"
-  version: "0.1.0"
-
-memory:
-  mongodb_uri: "mongodb://localhost:27017/"
-  db_name: "synapse_memory"
-  redis_host: "localhost"
-  redis_port: 6379
-  redis_db: 0
-  activation_threshold: 0.5
-  cache_expire_seconds: 3600
-  forget_interval: 86400 # 24小时
-  forget_ratio: 0.1
-
-rag:
-  mongodb_uri: "mongodb://localhost:27017/"
-  rag_db_name: "synapse_rag"
-  embedding_model: "BAAI/bge-large-zh"
-  embedding_dimension: 1024
-  cache_size: 10000
-
-output_inhibitor:
-  min_output_interval: 1.0
-  similarity_threshold: 0.7
-  max_tokens_per_minute: 500
-
-mcp:
-  base_url: "http://localhost:8000"
-  timeout: 30
-  retry_times: 3
-  tools:
-    - name: "code_search"
-      description: "搜索代码库"
-    - name: "web_search"
-      description: "网络搜索"
-    - name: "shell_execute"
-      description: "执行shell命令"
-    - name: "file_operation"
-      description: "文件操作"
-
-llm:
-  model: "gpt-3.5-turbo"
-  temperature: 0.7
-  max_tokens: 1000
-  timeout: 30
-
-plugins:
-  enabled:
-    - name: "text_io"
-      config: {}
-    - name: "websocket_io"
-      config:
-        port: 8080
-    - name: "http_io"
-      config:
-        port: 8081
+  name: 'Synapse' # 项目名称
+  version: '0.1.0' # 项目版本
+  debug: true # 是否开启调试模式
+  log_level: 'INFO' # 日志级别
+  log_path: 'logs' # 日志路径
+  port: 2333 # 服务端口

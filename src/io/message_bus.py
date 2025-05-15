@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """消息总线和消息基类模块，用于系统内部组件通信"""
 
 import asyncio
@@ -14,10 +13,9 @@ from ..core.logger import LogConfig
 logger = LogConfig.get_instance().get_logger("message_bus", "message_bus.log")
 
 class Message:
-    """消息类"""
-    
+    """消息类，支持多用户user_id"""
     def __init__(self, msg_type: str, data: Any, source: str = None, 
-                 metadata: Dict = None, context: Dict = None):
+                 metadata: Dict = None, context: Dict = None, user_id: str = None):
         self.id = str(uuid.uuid4())
         self.type = msg_type
         self.data = data
@@ -26,7 +24,8 @@ class Message:
         self.metadata = metadata or {}
         self.context = context or {}
         self.memory_activation = 0.0
-        
+        self.user_id = user_id  # 新增字段
+    
     def to_dict(self) -> Dict:
         """转换为字典格式"""
         return {
@@ -37,9 +36,10 @@ class Message:
             'timestamp': self.timestamp.isoformat(),
             'metadata': self.metadata,
             'context': self.context,
-            'memory_activation': self.memory_activation
+            'memory_activation': self.memory_activation,
+            'user_id': self.user_id  # 新增字段
         }
-        
+    
     @classmethod
     def from_dict(cls, data: Dict) -> 'Message':
         """从字典创建消息实例"""
@@ -48,7 +48,8 @@ class Message:
             data=data['data'],
             source=data.get('source'),
             metadata=data.get('metadata', {}),
-            context=data.get('context', {})
+            context=data.get('context', {}),
+            user_id=data.get('user_id')  # 新增字段
         )
         msg.id = data['id']
         msg.timestamp = datetime.fromisoformat(data['timestamp'])

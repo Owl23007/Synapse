@@ -54,17 +54,19 @@ class Application:
         """启动应用程序"""
         try:
             self.logger.info("正在启动应用程序...")
-            
+
+            # 订阅web输入流，debug模式下打印请求内容
+            if self.config.debug:
+                async def debug_web_input_printer(message):
+                    print(f"[DEBUG][web_input] 收到请求: {message}")
+                await self.message_bus.subscribe("web_input", debug_web_input_printer)
+
             # 按顺序启动所有组件
             for component in self.components:
                 await component.start()
-                
             self.logger.info("应用程序启动完成")
-            
-            # 等待直到收到退出信号
             while True:
                 await asyncio.sleep(1)
-                
         except asyncio.CancelledError:
             self.logger.info("收到退出信号")
         except Exception as e:

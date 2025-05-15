@@ -51,44 +51,39 @@ class AgentCore:
         logger.info("智能体已停止")
         
     async def _handle_input(self, message: Dict[str, Any]):
-        """处理用户输入"""
+        """处理用户输入，支持多用户user_id"""
         if not self._running:
             return
-            
         try:
             content = message.get("content", "").strip()
+            user_id = message.get("user_id")  # 获取user_id
             if not content:
                 return
-                
             # 检查触发器
             if await self.triggers.check(content):
                 return
-                
             # 获取上下文记忆
             context = await self.memory.get_context(content)
-            
             # 获取相关知识
             knowledge = await self.rag.get_knowledge(content)
-            
             # 处理响应
             response = await self._process_response(content, context, knowledge)
-            
-            # 发送响应
+            # 发送响应，带user_id
             await self.message_bus.publish("agent_output", {
                 "type": "text",
-                "content": response
+                "content": response,
+                "user_id": user_id
             })
-            
             # 存储对话记忆
             await self.memory.add_interaction(content, response)
-            
         except Exception as e:
             logger.error(f"处理输入时出错: {str(e)}", exc_info=True)
             logger.error(f"输入内容: {content}")
             logger.error(f"消息内容: {message}")
             await self.message_bus.publish("agent_output", {
-                "type": "error", 
-                "content": f"处理输入时出错: {str(e)}"
+                "type": "error",
+                "content": f"处理输入时出错: {str(e)}",
+                "user_id": message.get("user_id")
             })
             
     async def _handle_system(self, message: Dict[str, Any]):

@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
 import networkx as nx
 from pymongo import MongoClient
