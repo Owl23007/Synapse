@@ -29,6 +29,11 @@ from src.api.endpoints import app as api_app
 # 获取配置好的logger
 logger = LogConfig.get_instance().get_logger("main", "__main__.log")
 
+# 配置uvicorn的日志
+import logging
+logging.getLogger("uvicorn.error").disabled = True
+logging.getLogger("uvicorn.access").disabled = True
+
 class Application:
     """应用程序主类"""
     
@@ -44,12 +49,17 @@ class Application:
         
     async def initialize(self):
         """初始化应用程序"""
-        # 加载配置
-        self.config = load_config()
-        
-        # 初始化日志
-        self.logger = LogConfig.get_instance().get_logger("main", "__main__.log")
-        self.logger.info("正在启动应用程序...")
+        try:
+            # 加载配置
+            self.config = load_config()
+            if not self.config:
+                raise RuntimeError("无法加载配置")
+            # 初始化日志
+            self.logger = LogConfig.get_instance().get_logger("main", "__main__.log")
+            self.logger.info("正在启动应用程序...")
+        except Exception as e:
+            print(f"初始化配置或日志时发生异常: {e}")
+            raise
         
         # 初始化核心组件
         self.message_bus = MessageBus()
@@ -87,14 +97,13 @@ class Application:
         # 将agent实例添加到FastAPI应用状态中
         api_app.state.agent = self.agent
         
-        config = self.config
-        host = config.system.host  # 使用配置中的host
-        port = config.system.port  # 使用配置中的port
+        host = self.config.system.host  # 使用配置中的host
+        port = self.config.system.port  # 使用配置中的port
         
         # 启动FastAPI服务
         logger.info(f"正在启动API服务 {host}:{port}...")
         
-        return config, host, port
+        return self.config, host, port
 
 def main():
     """程序入口"""
@@ -102,8 +111,14 @@ def main():
     loop = asyncio.get_event_loop()
     config, host, port = loop.run_until_complete(app.start())
     
-    # 启动FastAPI服务
-    uvicorn.run(api_app, host=host, port=port)
+    # 启动FastAPI服务，配置日志
+    uvicorn.run(
+        api_app,
+        host=host,
+        port=port,
+        log_level="error",  # 只显示错误日志
+        access_log=False    # 禁用访问日志
+    )
 
 if __name__ == "__main__":
     main()

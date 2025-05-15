@@ -1,9 +1,12 @@
 import os
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
 import numpy as np
 from dataclasses import dataclass
 from src.core.config import Config
 from src.core.logger import LogConfig
+
+if TYPE_CHECKING:
+    import faiss
 
 logger = LogConfig.get_instance().get_logger("rag", "rag.log")
 
@@ -19,12 +22,12 @@ class RAGManager:
     
     def __init__(self, config: Config):
         self.config = config
-        self.chunk_size = config.chunk_size
-        self.chunk_overlap = config.chunk_overlap
-        self.vector_store = None
+        self.chunk_size: int = config.chunk_size
+        self.chunk_overlap: int = config.chunk_overlap
+        self.vector_store: Optional[Any] = None  # type: ignore
         self.documents: List[Document] = []
         
-    async def init(self):
+    async def init(self) -> None:
         """初始化RAG系统"""
         # 初始化向量存储
         if self.config.vector_store == "faiss":
@@ -37,18 +40,18 @@ class RAGManager:
         
         logger.info("RAG系统初始化完成")
         
-    async def cleanup(self):
+    async def cleanup(self) -> None:
         """清理RAG系统"""
         self.documents.clear()
         self.vector_store = None
         logger.info("RAG系统已清理")
         
-    async def _load_documents(self):
+    async def _load_documents(self) -> None:
         """加载文档"""
         # TODO: 实现文档加载和分块
         pass
         
-    async def add_document(self, content: str, metadata: Optional[Dict] = None):
+    async def add_document(self, content: str, metadata: Optional[Dict] = None) -> None:
         """添加文档到知识库
         
         Args:

@@ -21,59 +21,40 @@ class MessagePriority(IntEnum):
     URGENT = 3
 
 class Message:
-    """消息类，支持多用户user_id和优先级"""
-    def __init__(self, msg_type: str, data: Any, source: str = None, 
-                 metadata: Dict = None, context: Dict = None, user_id: str = None,
-                 priority: MessagePriority = MessagePriority.NORMAL,
-                 retry_count: int = 0, max_retries: int = 3):
-        self.id = str(uuid.uuid4())
-        self.type = msg_type
-        self.data = data
+    def __init__(
+        self,
+        content: str,
+        source: Optional[str] = None,
+        type: str = "text",
+        metadata: Optional[Dict[Any, Any]] = None,
+        context: Optional[Dict[Any, Any]] = None,
+        user_id: Optional[str] = None,
+        priority: MessagePriority = MessagePriority.NORMAL,
+        max_retries: int = 3
+    ) -> None:
+        self.id = str(uuid.uuid4())  # 添加唯一ID
+        self.content = content
         self.source = source
-        self.timestamp = datetime.now()
+        self.type = type
         self.metadata = metadata or {}
         self.context = context or {}
-        self.memory_activation = 0.0
         self.user_id = user_id
+        self.timestamp = time.time()
         self.priority = priority
-        self.retry_count = retry_count
+        self.retry_count = 0
         self.max_retries = max_retries
-    
-    def to_dict(self) -> Dict:
-        """转换为字典格式"""
+        self.data = {}  # 添加通用数据字段
+
+    def to_dict(self) -> Dict[str, Any]:
         return {
-            'id': self.id,
-            'type': self.type,
-            'data': self.data,
-            'source': self.source,
-            'timestamp': self.timestamp.isoformat(),
-            'metadata': self.metadata,
-            'context': self.context,
-            'memory_activation': self.memory_activation,
-            'user_id': self.user_id,
-            'priority': self.priority.value,
-            'retry_count': self.retry_count,
-            'max_retries': self.max_retries
+            "content": self.content,
+            "type": self.type,
+            "source": self.source,
+            "metadata": self.metadata,
+            "context": self.context,
+            "user_id": self.user_id,
+            "timestamp": self.timestamp
         }
-    
-    @classmethod
-    def from_dict(cls, data: Dict) -> 'Message':
-        """从字典创建消息实例"""
-        msg = cls(
-            msg_type=data['type'],
-            data=data['data'],
-            source=data.get('source'),
-            metadata=data.get('metadata', {}),
-            context=data.get('context', {}),
-            user_id=data.get('user_id'),
-            priority=MessagePriority(data.get('priority', MessagePriority.NORMAL)),
-            retry_count=data.get('retry_count', 0),
-            max_retries=data.get('max_retries', 3)
-        )
-        msg.id = data['id']
-        msg.timestamp = datetime.fromisoformat(data['timestamp'])
-        msg.memory_activation = data.get('memory_activation', 0.0)
-        return msg
 
 class MessageBus:
     """消息总线，用于组件间通信"""
@@ -85,13 +66,13 @@ class MessageBus:
         self._message_queue = asyncio.PriorityQueue()
         self._processing_tasks = set()
         
-    async def publish(self, topic: str, message: Union[Dict[str, Any], Message], 
+    async def publish(self, topic: str, message: Union[Dict[str, Any], Message, str], 
                      priority: MessagePriority = MessagePriority.NORMAL) -> None:
         """发布消息到指定主题
         
         Args:
             topic: 消息主题
-            message: 消息内容字典或Message对象
+            message: 消息内容可以是字典、Message对象或字符串
             priority: 消息优先级
         """
         if not self._running:
@@ -99,8 +80,14 @@ class MessageBus:
             
         if isinstance(message, dict):
             msg = Message(
-                msg_type=topic,
-                data=message,
+                content=json.dumps(message),
+                type=topic,
+                priority=priority
+            )
+        elif isinstance(message, str):
+            msg = Message(
+                content=message,
+                type=topic,
                 priority=priority
             )
         else:
@@ -230,7 +217,12 @@ class PluginInterface:
         """注销消息处理函数，在子类中实现"""
         pass
     
-    async def send_message(self, msg_type: str, data: Any, metadata: Dict = None) -> None:
+    async def send_message(self, msg_type: str, data: Any, metadata: Optional[Dict[str, Any]] = None) -> None:
         """向消息总线发送消息"""
-        message = Message(msg_type, data, self.name, metadata)
+        message = Message(
+            content=json.dumps(data) if not isinstance(data, str) else data,
+            type=msg_type,
+            source=self.name,
+            metadata=metadata
+        )
         await self.message_bus.publish(msg_type, message)

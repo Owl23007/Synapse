@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 import networkx as nx
 from pymongo import MongoClient
@@ -20,19 +20,30 @@ logger = LogConfig.get_instance().get_logger("memory_manager", "memory.log")
 class MemorySystem:
     """三级记忆系统"""
     
-    def __init__(self, config: Dict):
+    def __init__(self, config: Dict[str, Any]):
         logger.info("初始化记忆系统...")
         # 配置
-        self.config = config
+        self.config: Dict[str, Any] = config
         
-        # MongoDB长期记忆
+        # 初始化存储系统
         logger.info("连接MongoDB长期记忆存储...")
-        self.mongo_client = MongoClient(config.get('mongodb_uri', 'mongodb://localhost:27017/'))
+        self.mongo_client: MongoClient = MongoClient(config.get('mongodb_uri', 'mongodb://localhost:27017/'))
         self.db = self.mongo_client[config.get('db_name', 'synapse_memory')]
+        
+        # 初始化搜索和记忆方法
+        self._store_context = self._store_in_context
+        self._store_cache = self._store_in_cache
+        self._store_longterm = self._store_in_longterm
+        self._search_context = self._search_in_context
+        self._search_cache = self._search_in_cache
+        self._search_longterm = self._search_in_longterm
+        self._calculate_context_activation = self._calculate_activation
+        self._calculate_cache_activation = self._calculate_activation
+        self._calculate_longterm_activation = self._calculate_activation
         
         # Redis缓存
         logger.info("连接Redis短期记忆缓存...")
-        self.redis_client = redis.Redis(
+        self.redis_client: redis.Redis = redis.Redis(
             host=config.get('redis_host', 'localhost'),
             port=config.get('redis_port', 6379),
             db=config.get('redis_db', 0)
@@ -40,10 +51,10 @@ class MemorySystem:
         
         # 上下文记忆(图结构)
         logger.info("初始化上下文记忆图结构...")
-        self.context_graph = nx.Graph()
+        self.context_graph: nx.Graph = nx.Graph()
         
         # 记忆激活阈值
-        self.activation_threshold = config.get('activation_threshold', 0.5)
+        self.activation_threshold: float = config.get('activation_threshold', 0.5)
         logger.info(f"记忆激活阈值设置为: {self.activation_threshold}")
         
     async def store_memory(self, message: Message) -> None:
@@ -71,7 +82,7 @@ class MemorySystem:
         
         # 1. 从上下文图检索
         logger.debug("从上下文图检索...")
-        context_results = self._search_context(query, context)
+        context_results = self._search_context(query)
         results.extend(context_results)
         
         # 2. 从Redis缓存检索
@@ -109,6 +120,55 @@ class MemorySystem:
         logger.debug(f"最终激活度: {activation}")
         return activation
         
+    async def _store_in_context(self, message: Message) -> None:
+        """存储到上下文记忆"""
+        if not message.content:
+            return
+        self.context_graph.add_node(message.id, data=message.to_dict())
+
+    async def _store_in_cache(self, message: Message) -> None:
+        """存储到缓存记忆"""
+        if not message.content:
+            return
+        await self.redis_client.set(f"msg:{message.id}", json.dumps(message.to_dict()))
+
+    async def _store_in_longterm(self, message: Message) -> None:
+        """存储到长期记忆"""
+        if not message.content:
+            return
+        await self.db.messages.insert_one(message.to_dict())
+
+    async def _search_in_context(self, query: str) -> List[Dict[str, Any]]:
+        """在上下文记忆中搜索"""
+        results = []
+        for node in self.context_graph.nodes():
+            data = self.context_graph.nodes[node].get('data', {})
+            if self._calculate_similarity(query, data.get('content', '')) > 0.5:
+                results.append(data)
+        return results
+
+    async def _search_in_cache(self, query: str) -> List[Dict[str, Any]]:
+        """在缓存记忆中搜索"""
+        results = []
+        async for key in self.redis_client.scan_iter("msg:*"):
+            data = json.loads(await self.redis_client.get(key))
+            if self._calculate_similarity(query, data.get('content', '')) > 0.5:
+                results.append(data)
+        return results
+
+    async def _search_in_longterm(self, query: str) -> List[Dict[str, Any]]:
+        """在长期记忆中搜索"""
+        results = []
+        async for doc in self.db.messages.find({"$text": {"$search": query}}):
+            results.append(doc)
+        return results
+
+    def _calculate_activation(self, memory: Dict[str, Any]) -> float:
+        """计算记忆的活跃度"""
+        # 简单实现：根据时间衰减
+        time_diff = time.time() - memory.get('timestamp', 0)
+        return max(0, 1 - time_diff / (24 * 3600))  # 24小时衰减到0
+
     def _store_context(self, message: Message) -> None:
         """存储到上下文图"""
         msg_id = message.id

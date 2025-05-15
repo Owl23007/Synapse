@@ -1,19 +1,10 @@
 from loguru import logger
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast, Any
 import os
 
-def some_utility_function(param1, param2):
-    # This is a placeholder for a utility function that performs a specific task.
-    return param1 + param2
-
-def another_utility_function(data):
-    # This function processes the input data and returns the result.
-    processed_data = [d * 2 for d in data]  # Example processing
-    return processed_data
-
-def setup_logging(module_name: str, log_level: Optional[str] = None) -> logger:
+def setup_logging(module_name: str, log_level: Optional[str] = None) -> Any:
     """设置日志配置
     
     Args:
@@ -58,5 +49,3 @@ def setup_logging(module_name: str, log_level: Optional[str] = None) -> logger:
     )
     
     return logger.bind(name=module_name)
-
-# Add more utility functions as needed.

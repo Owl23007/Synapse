@@ -1,7 +1,7 @@
 import requests
 
 headers = {
-    'X-API-Key': 'iI6wm3gtM7aBDX12EyUKrvfLZWYRJQbF',
+    'X-API-Key': 'L3cev1ABEb0YAtIsJcJVrRVQEKzvax4nQrWhqq9RjmU',
     'Content-Type': 'application/json'
 }
 

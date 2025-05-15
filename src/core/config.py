@@ -107,7 +107,7 @@ def _load_yaml_with_include(path: str, loaded=None) -> dict:
         data = yaml.safe_load(f) or {}
     # 处理 include
     includes = data.pop('include', [])
-    merged = {}
+    merged: Dict[str, Any] = {}
     for inc in includes:
         inc_path = os.path.join(os.path.dirname(path), inc)
         merged = _deep_update(merged, _load_yaml_with_include(inc_path, loaded))

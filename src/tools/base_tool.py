@@ -3,6 +3,24 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 
+class MCPTool(ABC):
+    """MCP工具基类"""
+    
+    def __init__(self, name: str, description: str, mcp_config: Dict[str, Any]):
+        self.name = name
+        self.description = description
+        self.mcp_config = mcp_config
+
+    @abstractmethod
+    async def validate_params(self, params: Dict[str, Any]) -> bool:
+        """验证参数"""
+        pass
+
+    @abstractmethod
+    async def call_mcp_api(self, params: Dict[str, Any]) -> Any:
+        """调用MCP API"""
+        pass
+
 class ToolDescription(BaseModel):
     """工具描述模型"""
     name: str = Field(..., description="工具名称")
