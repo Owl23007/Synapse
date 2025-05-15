@@ -9,9 +9,17 @@ include:
 
 # 项目配置文件
 system:
-  name: 'Synapse' # 项目名称
-  version: '0.1.0' # 项目版本
-  debug: true # 是否开启调试模式
-  log_level: 'INFO' # 日志级别
+  name: 'Synapse AI'
+  version: '1.0.0'
+  debug: false
+  log_level: 'INFO'
   log_path: 'logs' # 日志路径
   port: 2333 # 服务端口
+
+api:
+  version: 'v1'
+  rate_limit: '10/minute'
+  allowed_origins:
+    - 'http://localhost:8080'
+    - 'http://localhost:3000'
+  api_key: 'your-secret-key' # 在生产环境中应该使用强密钥

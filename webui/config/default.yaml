@@ -2,7 +2,8 @@
 system:
   name: 'Synapse WebUI'
   version: '0.1.0'
-  debug: false
-  log_level: 'INFO'
+  debug: true # 开启调试模式
+  log_level: 'DEBUG' # 更详细的日志
   log_path: 'logs'
-  port: 8000
+  port: 8081 # 使用不同端口避免冲突
+  # agent_url 从主服务配置自动获取，无需在此配置

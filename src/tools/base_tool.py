@@ -38,8 +38,9 @@ class BaseTool(ABC):
 class ToolManager:
     """工具管理器"""
     
-    def __init__(self):
+    def __init__(self, config=None):
         self.tools: Dict[str, BaseTool] = {}
+        self.config = config
         
     async def init(self):
         """初始化工具管理器"""

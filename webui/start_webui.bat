@@ -1,15 +1,13 @@
 @echo off
 title Synapse WebUI
 
-:: Change to script directory
+:: 设置工作目录为脚本所在目录
 cd /d "%~dp0"
 
 :: 检查依赖项
-
-:: Check if Python is installed
 python --version > nul 2>&1
 if errorlevel 1 (
-    echo Python is not installed or not in PATH
+    echo 未找到 Python，请安装 Python 3.8+
     pause
     exit /b 1
 )
